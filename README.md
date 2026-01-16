@@ -1,8 +1,25 @@
-# Batch File Renamer
+<div align="center">
 
-A professional batch file renaming utility with sequential numbering, intelligent sorting, and conflict resolution.
+![Antigravity Batch Renamer](app_logo.png)
 
-## Features
+# Antigravity Batch File Renamer
+
+**A professional batch file renaming utility with sequential numbering, intelligent sorting, and conflict resolution.**
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue.svg)]()
+[![Python](https://img.shields.io/badge/Python-3.10%2B-green.svg)]()
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+
+[Features](#features) • [Installation](#installation) • [Usage](#usage) • [Documentation](#documentation) • [Contributing](#contributing)
+
+</div>
+
+---
+
+## Overview
+
+A professional batch file renaming utility designed for video editors, photographers, and anyone who needs to rename multiple files efficiently. Built with Python and tkinter, featuring a clean GUI and powerful renaming capabilities.
 
 - ✨ **Batch Rename**: Rename 30-40+ files in seconds with sequential numbering
 - 📁 **File Selection**: Browse or drag-and-drop support for file selection
@@ -192,6 +209,10 @@ When a target filename already exists:
 ### Issue: Files aren't in the right order
 **Solution**: Change the "Sort By" option to match your desired ordering (e.g., Date Modified for chronological order)
 
+## Screenshots
+
+*Coming soon - add screenshots of your application in action!*
+
 ## Technical Details
 
 - **Language**: Python 3.10+
@@ -209,8 +230,20 @@ FileNameOrganizer/
 ├── renamer_engine.py    # Core renaming logic
 ├── validators.py        # Input validation
 ├── config.py            # Configuration and constants
-└── README.md            # This file
+├── app_icon.ico         # Application icon
+├── app_logo.png         # Logo image
+├── build_exe.py         # PyInstaller build script
+├── convert_icon.py      # Icon conversion utility
+├── README.md            # This file
+├── LICENSE              # MIT License
+├── CONTRIBUTING.md      # Contribution guidelines
+├── DEPLOYMENT.md        # Deployment guide
+└── USER_GUIDE.txt       # End-user instructions
 ```
+
+## Contributing
+
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
 ## Future Enhancements
 
@@ -221,17 +254,44 @@ Potential features for future versions:
 - Custom date/time stamps in filenames
 - Batch resize/convert operations
 - Context menu integration (right-click in Windows Explorer)
+- macOS and Linux standalone builds
 
 ## License
 
-MIT License - Feel free to use, modify, and distribute.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- Built with Python and tkinter
+- Icon conversion using Pillow
+- Executable packaging with PyInstaller
 
 ## Support
 
-For issues, suggestions, or contributions, please contact the development team or open an issue in the repository.
+If you encounter any issues or have questions:
+1. Check the [troubleshooting section](#troubleshooting)
+2. Read the [DEPLOYMENT.md](DEPLOYMENT.md) for build/distribution issues
+3. Open an issue on GitHub
+
+## Changelog
+
+### v1.0.0 (January 2026)
+- Initial release
+- Complete batch renaming with GUI
+- Sequential numbering with auto-padding
+- Multiple sorting options
+- Conflict resolution strategies
+- Live preview
+- Error handling
+- Standalone executable with custom icon
+- Comprehensive documentation
 
 ---
 
-**Version**: 1.0.0  
-**Author**: FileNameOrganizer Team  
-**Last Updated**: January 2026
+<div align="center">
+
+**Made with ❤️ by Antigravity**
+
+[Report Bug](https://github.com/YOUR_USERNAME/FileNameOrganizer/issues) • [Request Feature](https://github.com/YOUR_USERNAME/FileNameOrganizer/issues) • [Documentation](DEPLOYMENT.md)
+
+</div>
