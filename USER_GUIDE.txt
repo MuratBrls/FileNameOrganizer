@@ -1,0 +1,129 @@
+====================================
+  BATCH FILE RENAMER - USER GUIDE
+====================================
+
+Thank you for using Batch File Renamer!
+
+QUICK START
+-----------
+1. Double-click BatchFileRenamer.exe to start
+2. Click "Browse Files..." to select files to rename
+3. Enter a Base Name (e.g., "MyVideo")
+4. Choose your settings (padding, sorting, etc.)
+5. Preview the changes in the bottom section
+6. Click "Rename Files" when ready
+
+FEATURES
+--------
+✓ Rename 30-40+ files in seconds
+✓ Sequential numbering (1, 2, 3... or 01, 02, 03...)
+✓ Automatic file extension preservation
+✓ Multiple sorting options
+✓ Preview before renaming
+✓ Error handling for locked files
+
+CONFIGURATION OPTIONS
+---------------------
+
+Base Name:
+  The new name for your files (e.g., "Video" becomes "Video_1.mp4")
+
+Separator:
+  Character between name and number (default: _ underscore)
+  Examples: "_" → Video_1  |  "-" → Video-1  |  " " → Video 1
+
+Start Number:
+  First number in sequence (usually 1)
+
+Zero Padding:
+  - Auto-detect: Automatically adds zeros based on file count
+    (1-9 files → no padding, 10-99 → 01, 100+ → 001)
+  - No Padding: 1, 2, 3, 10, 100
+  - 2 Digits: 01, 02, 03
+  - 3 Digits: 001, 002, 003
+
+Sort By:
+  - Alphabetical: Sort by filename A-Z
+  - Date Modified: Sort by when file was last changed
+  - Date Created: Sort by when file was created
+  - Selection Order: Keep the order you selected files
+
+If Conflict (when a file with new name already exists):
+  - Skip: Don't rename files that would conflict
+  - Add Suffix: Add "_copy" to the filename
+  - Auto-increment: Find next available number
+
+PREVIEW SECTION
+---------------
+Colors indicate status:
+  GREEN  (✓) - Ready to rename
+  YELLOW (⚠) - Warning/conflict detected
+  RED    (✗) - Error (locked file, invalid name, etc.)
+
+Always check the preview before clicking "Rename Files"!
+
+TIPS
+----
+• Close files in other programs before renaming (prevents lock errors)
+• Use "Auto-detect" padding for most cases
+• Sort by "Date Created" for camera files to maintain order
+• Test with 2-3 files first if unsure
+
+COMMON USE CASES
+----------------
+
+1. VIDEO EDITING SEQUENCES
+   Base Name: RawFootage
+   Sort By: Date Created
+   Padding: Auto-detect
+   Result: RawFootage_01.mp4, RawFootage_02.mp4...
+
+2. PHOTO ORGANIZATION
+   Base Name: Wedding_2026
+   Separator: -
+   Padding: 3 Digits
+   Result: Wedding_2026-001.jpg, Wedding_2026-002.jpg...
+
+3. AUDIO FILES
+   Base Name: Track
+   Start Number: 1
+   Padding: 2 Digits
+   Result: Track_01.wav, Track_02.wav...
+
+TROUBLESHOOTING
+---------------
+
+Q: Files show as RED in preview?
+A: Close the files in other programs (video editors, image viewers, etc.)
+
+Q: Preview shows "Error: Base name cannot be empty"?
+A: Enter a name in the "Base Name" field
+
+Q: Preview shows "Contains forbidden characters"?
+A: Don't use these characters: < > : " / \ | ? *
+
+Q: Some files weren't renamed?
+A: Check the results dialog - it will show which files failed and why
+
+Q: Numbers aren't in the right order?
+A: Change "Sort By" option (try "Date Created" or "Alphabetical")
+
+SYSTEM REQUIREMENTS
+-------------------
+• Windows 10 or Windows 11
+• 50MB RAM
+• No Python or other software needed!
+
+SUPPORT
+-------
+For issues or questions, check the README.md file
+or contact: [your contact info]
+
+VERSION
+-------
+Batch File Renamer v1.0.0
+Built: January 2026
+
+------------------------------------
+Enjoy renaming your files! 🚀
+------------------------------------
