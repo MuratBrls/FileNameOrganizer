@@ -1,0 +1,88 @@
+## 🎯 Quick GitHub Release Guide
+
+### Step 1: Log in to GitHub
+You're already on the login page in Brave. Log in with your credentials.
+
+### Step 2: Navigate to Releases
+Once logged in, go to: https://github.com/MuratBrls/FileNameOrganizer/releases/new
+
+### Step 3: Fill in Release Details
+
+**Tag version** (in the "Choose a tag" dropdown, type): 
+```
+v1.0.0
+```
+
+**Release title**:
+```
+Batch File Renamer v1.0.0 - Initial Release
+```
+
+**Description** (copy and paste this entire block):
+```markdown
+## 🎉 Initial Release
+
+Professional batch file renaming utility for Windows with GUI, sequential numbering, and intelligent conflict resolution.
+
+### ✨ Features
+
+- 🔢 **Sequential Numbering**: Auto-padding based on file count (1-9 → no padding, 10-99 → 01, 100+ → 001)
+- 📁 **Smart Sorting**: Alphabetical, date modified, date created, or selection order
+- ⚡ **Live Preview**: See exactly how files will be renamed before executing
+- 🛡️ **Conflict Resolution**: Multiple strategies (skip, suffix, auto-increment)
+- 🔒 **Error Handling**: Detects locked files and permission errors
+- 🎨 **Professional UI**: Clean tkinter interface with color-coded status
+- 📦 **Extension Preservation**: Automatically maintains file extensions
+- 🧵 **Non-blocking**: Multi-threaded execution keeps UI responsive
+
+### 💾 Download
+
+**Windows 10/11 Users**: Download **BatchFileRenamer.exe** below ⬇️
+
+- ✅ No Python installation required
+- ✅ Standalone executable (~8.5 MB)
+- ✅ Just download, double-click, and use!
+
+**First-time users**: You may see a Windows SmartScreen warning. Click "More info" → "Run anyway" (normal for unsigned executables)
+
+### 📖 Documentation
+
+- **Quick Start**: See [USER_GUIDE.txt](https://github.com/MuratBrls/FileNameOrganizer/blob/main/USER_GUIDE.txt)
+- **Full Documentation**: Check the [README](https://github.com/MuratBrls/FileNameOrganizer#readme)
+- **Build from Source**: Read [DEPLOYMENT.md](https://github.com/MuratBrls/FileNameOrganizer/blob/main/DEPLOYMENT.md)
+
+### 🎯 Use Cases
+
+Perfect for:
+- 🎬 Video editors (Premiere Pro, DaVinci Resolve)
+- 📸 Photographers organizing shoots
+- 🎵 Audio engineers managing stems
+- 📁 Anyone who needs to rename 30-40+ files efficiently
+
+### 🐛 Known Issues
+
+None! This is the stable initial release.
+
+---
+
+**Enjoy renaming your files!** 🚀
+
+For issues or feature requests, please open an [issue](https://github.com/MuratBrls/FileNameOrganizer/issues).
+```
+
+### Step 4: Upload Executable
+
+1. Scroll down to the **"Attach binaries"** section
+2. Click or drag and drop
+3. Select this file: `C:\Users\egule\Desktop\antigravity\FileNameOrganizer\dist\BatchFileRenamer.exe`
+4. Wait for upload to complete
+
+### Step 5: Publish
+
+Click the green **"Publish release"** button at the bottom
+
+---
+
+## ✅ That's it!
+
+Your release will be live and people can download BatchFileRenamer.exe directly from GitHub!

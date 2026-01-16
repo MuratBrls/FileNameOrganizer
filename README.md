@@ -1,8 +1,8 @@
 <div align="center">
 
-![Antigravity Batch Renamer](app_logo.png)
+![Batch File Renamer](app_logo.png)
 
-# Antigravity Batch File Renamer
+# Batch File Renamer
 
 **A professional batch file renaming utility with sequential numbering, intelligent sorting, and conflict resolution.**
 
@@ -290,7 +290,7 @@ If you encounter any issues or have questions:
 
 <div align="center">
 
-**Made with ❤️ by Antigravity**
+**Made with ❤️**
 
 [Report Bug](https://github.com/YOUR_USERNAME/FileNameOrganizer/issues) • [Request Feature](https://github.com/YOUR_USERNAME/FileNameOrganizer/issues) • [Documentation](DEPLOYMENT.md)
 
