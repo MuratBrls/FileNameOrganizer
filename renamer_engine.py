@@ -1,12 +1,13 @@
 """
-Core file renaming engine with sorting, conflict resolution, and batch operations.
+Core file renaming engine with sorting, conflict resolution, batch operations, and history logging.
 """
 import os
 from pathlib import Path
 from datetime import datetime
-from typing import List, Tuple, Dict, Optional, Callable
+from typing import List, Tuple, Dict, Optional, Callable, Any
 from config import RenameConfig
 from validators import validate_rename_operation, validate_file_access
+from history_manager import HistoryManager
 
 
 class RenameResult:
@@ -37,6 +38,7 @@ class FileRenamer:
         self.config = config
         self.sorted_files = []
         self.rename_plan = []
+        self.history_manager = HistoryManager()
         
     def extract_extension(self, filepath: Path) -> str:
         """
@@ -252,7 +254,7 @@ class FileRenamer:
     
     def execute_rename(self, progress_callback: Optional[Callable] = None) -> List[RenameResult]:
         """
-        Execute the rename operation.
+        Execute the rename operation and log to history.
         
         Args:
             progress_callback: Optional function(current, total, filename) for progress updates
@@ -261,6 +263,7 @@ class FileRenamer:
             List of RenameResult objects
         """
         results = []
+        successful_renames = []
         total = len(self.rename_plan)
         
         for i, (old_path, new_path, is_valid, error) in enumerate(self.rename_plan):
@@ -284,6 +287,10 @@ class FileRenamer:
                 old_path.rename(new_path)
                 result = RenameResult(old_path, new_path, success=True, error=None)
                 results.append(result)
+                successful_renames.append({
+                    "old_path": str(old_path),
+                    "new_path": str(new_path)
+                })
             except PermissionError:
                 error_msg = f"Permission denied - file may be locked or in use"
                 result = RenameResult(old_path, new_path, success=False, error=error_msg)
@@ -297,9 +304,13 @@ class FileRenamer:
                 result = RenameResult(old_path, new_path, success=False, error=error_msg)
                 results.append(result)
         
+        # Log to history if any changes were made
+        if successful_renames:
+            self.history_manager.add_session(successful_renames)
+            
         return results
     
-    def verify_rename(self, results: List[RenameResult]) -> Dict[str, any]:
+    def verify_rename(self, results: List[RenameResult]) -> Dict[str, Any]:
         """
         Verify the results of a rename operation.
         
@@ -322,3 +333,51 @@ class FileRenamer:
             stats["success_rate"] = (stats["successful"] / stats["total"]) * 100
         
         return stats
+
+    def undo_session(self, session_data: Dict[str, Any], progress_callback: Optional[Callable] = None) -> List[RenameResult]:
+        """
+        Undo a specific rename session.
+        
+        Args:
+            session_data: The session data dictionary containing file mappings.
+            progress_callback: Optional progress callback.
+            
+        Returns:
+            List of results from the undo operation.
+        """
+        results = []
+        files = session_data.get("files", [])
+        total = len(files)
+        
+        # Reverse the order to prevent conflicts (e.g. 1->2, 2->3 needs to be undone as 3->2, 2->1)
+        # Actually it depends on how the rename happened. If it was A->B and B existed, B might have been renamed to C.
+        # But for simple mass renames, reverse order is generally safer if they were sequential.
+        # However, since we store absolute paths, we just map new->old.
+        
+        for i, file_record in enumerate(reversed(files)):
+            old_original_path = Path(file_record["old_path"])
+            current_path = Path(file_record["new_path"])
+            
+            if progress_callback:
+                progress_callback(i + 1, total, current_path.name)
+            
+            if not current_path.exists():
+                results.append(RenameResult(current_path, old_original_path, success=False, error="File not found"))
+                continue
+                
+            try:
+                # Check if original path exists (potential conflict if file was replaced back)
+                if old_original_path.exists():
+                     # If the original path exists, we can't just overwrite it without risk.
+                     # But for an undo, we implicitly want to restore. 
+                     # However, safe practice: Add a suffix or fail.
+                     # For now, let's fail to be safe.
+                     results.append(RenameResult(current_path, old_original_path, success=False, error="Target path already exists"))
+                     continue
+                
+                current_path.rename(old_original_path)
+                results.append(RenameResult(current_path, old_original_path, success=True))
+            except Exception as e:
+                results.append(RenameResult(current_path, old_original_path, success=False, error=str(e)))
+                
+        return results

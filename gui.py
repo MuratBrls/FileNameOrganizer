@@ -6,6 +6,7 @@ from tkinter import ttk, filedialog, messagebox
 from pathlib import Path
 from typing import List
 import threading
+from datetime import datetime
 
 from config import (
     APP_NAME, APP_VERSION, WINDOW_WIDTH, WINDOW_HEIGHT,
@@ -15,6 +16,11 @@ from config import (
 )
 from validators import validate_base_name, validate_start_number, validate_separator
 from renamer_engine import FileRenamer
+from renamer_engine import FileRenamer
+from renamer_engine import FileRenamer
+from history_manager import HistoryManager
+from theme_manager import ModernTheme
+from app_settings import AppSettings
 
 
 class RenamerGUI:
@@ -28,44 +34,259 @@ class RenamerGUI:
         
         # State
         self.selected_files = []
+        self.original_names = {}  # Map current path -> original import name
         self.config = RenameConfig()
         self.preview_data = []
+        # State
+        self.selected_files = []
+        self.original_names = {}  # Map current path -> original import name
+        self.config = RenameConfig()
+        self.preview_data = []
+        self.settings = AppSettings()
+        self.history_manager = HistoryManager(self.settings.get_history_path())
         
         # Create UI
         self.create_widgets()
-        self.update_preview()
+        
+        # Apply Theme
+        self.theme = ModernTheme(self.root)
+        self.theme.apply()
         
     def create_widgets(self):
         """Create all GUI widgets."""
-        # Main container
-        main_frame = ttk.Frame(self.root, padding="10")
-        main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
         
         # Configure grid weights for resizing
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
-        main_frame.columnconfigure(0, weight=1)
-        main_frame.rowconfigure(2, weight=1)  # File list area
-        main_frame.rowconfigure(4, weight=1)  # Preview area
+        
+        # Main Notebook (Tabs)
+        self.notebook = ttk.Notebook(self.root)
+        self.notebook.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S), padx=5, pady=5)
+        
+        # Tab 1: Workspace
+        self.workspace_frame = ttk.Frame(self.notebook, padding="10")
+        self.notebook.add(self.workspace_frame, text="Workspace")
+        self.setup_workspace_tab(self.workspace_frame)
+        
+        # Tab 2: History
+        self.history_frame = ttk.Frame(self.notebook, padding="10")
+        self.notebook.add(self.history_frame, text="History")
+        self.setup_history_tab(self.history_frame)
+        
+        # Bind tab change to refresh history
+        self.notebook.bind("<<NotebookTabChanged>>", self.on_tab_change)
+
+    def setup_workspace_tab(self, parent):
+        """Setup the main workspace tab."""
+        parent.columnconfigure(0, weight=1)
+        parent.rowconfigure(2, weight=1)  # File list area
+        parent.rowconfigure(4, weight=1)  # Preview area
         
         # ===== Section 1: File Selection =====
-        self.create_file_selection_section(main_frame, row=0)
+        self.create_file_selection_section(parent, row=0)
         
         # ===== Section 2: File List =====
-        self.create_file_list_section(main_frame, row=2)
+        self.create_file_list_section(parent, row=2)
         
         # ===== Section 3: Configuration =====
-        self.create_config_section(main_frame, row=3)
+        self.create_config_section(parent, row=3)
         
         # ===== Section 4: Preview =====
-        self.create_preview_section(main_frame, row=4)
+        self.create_preview_section(parent, row=4)
         
         # ===== Section 5: Action Buttons =====
-        self.create_action_section(main_frame, row=5)
+        self.create_action_section(parent, row=5)
         
         # ===== Section 6: Status Bar =====
-        self.create_status_bar(main_frame, row=6)
-    
+        self.create_status_bar(parent, row=6)
+
+    def setup_history_tab(self, parent):
+        """Setup the history tab."""
+        parent.columnconfigure(0, weight=1) # Sessions list
+        parent.columnconfigure(1, weight=2) # Details list
+        parent.rowconfigure(1, weight=1)
+        
+        
+        # Header
+        ttk.Label(parent, text="History & Recovery", style="Header.TLabel").grid(row=0, column=0, columnspan=2, sticky=tk.W, pady=(0, 10))
+        
+        # Left Panel: Sessions List
+        session_frame = ttk.LabelFrame(parent, text="Past Sessions", padding="5")
+        session_frame.grid(row=1, column=0, sticky=(tk.N, tk.S, tk.W, tk.E), padx=(0, 5))
+        session_frame.columnconfigure(0, weight=1)
+        session_frame.rowconfigure(0, weight=1)
+        
+        columns = ("date", "count")
+        self.tree_sessions = ttk.Treeview(session_frame, columns=columns, show="headings", selectmode="browse")
+        self.tree_sessions.heading("date", text="Date & Time")
+        self.tree_sessions.heading("count", text="Files")
+        self.tree_sessions.column("date", width=140)
+        self.tree_sessions.column("count", width=50, anchor=tk.CENTER)
+        self.tree_sessions.grid(row=0, column=0, sticky=(tk.N, tk.S, tk.W, tk.E))
+        
+        sb_sessions = ttk.Scrollbar(session_frame, orient=tk.VERTICAL, command=self.tree_sessions.yview)
+        sb_sessions.grid(row=0, column=1, sticky=(tk.N, tk.S))
+        self.tree_sessions.configure(yscrollcommand=sb_sessions.set)
+        
+        self.tree_sessions.bind("<<TreeviewSelect>>", self.on_session_select)
+        
+        # Right Panel: Session Details
+        details_frame = ttk.LabelFrame(parent, text="Session Details", padding="5")
+        details_frame.grid(row=1, column=1, sticky=(tk.N, tk.S, tk.W, tk.E))
+        details_frame.columnconfigure(0, weight=1)
+        details_frame.rowconfigure(0, weight=1)
+        
+        det_columns = ("old", "arrow", "new")
+        self.tree_history_details = ttk.Treeview(details_frame, columns=det_columns, show="headings")
+        self.tree_history_details.heading("old", text="Original Name")
+        self.tree_history_details.heading("arrow", text="")
+        self.tree_history_details.heading("new", text="Renamed To")
+        self.tree_history_details.column("old", width=200)
+        self.tree_history_details.column("arrow", width=30, anchor=tk.CENTER)
+        self.tree_history_details.column("new", width=200)
+        self.tree_history_details.grid(row=0, column=0, sticky=(tk.N, tk.S, tk.W, tk.E))
+        
+        sb_details = ttk.Scrollbar(details_frame, orient=tk.VERTICAL, command=self.tree_history_details.yview)
+        sb_details.grid(row=0, column=1, sticky=(tk.N, tk.S))
+        self.tree_history_details.configure(yscrollcommand=sb_details.set)
+        
+        # Action Panel
+        action_frame = ttk.Frame(parent, padding="5")
+        action_frame.grid(row=2, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=10)
+        
+        self.btn_undo = ttk.Button(action_frame, text="Undo Selected Session", command=self.undo_session, state=tk.DISABLED, style="Accent.TButton")
+        self.btn_undo.pack(side=tk.RIGHT)
+        
+        self.btn_undo = ttk.Button(action_frame, text="Undo Selected Session", command=self.undo_session, state=tk.DISABLED, style="Accent.TButton")
+        self.btn_undo.pack(side=tk.RIGHT, padx=5)
+        
+        ttk.Button(action_frame, text="Refresh", command=self.load_history).pack(side=tk.LEFT, padx=5)
+        ttk.Button(action_frame, text="Change Storage Location...", command=self.change_history_location).pack(side=tk.LEFT, padx=5)
+
+    def on_tab_change(self, event):
+        """Handle tab changes."""
+        if self.notebook.index("current") == 1:  # History tab
+            self.load_history()
+
+    def load_history(self):
+        """Load sessions into the history list."""
+        # Clear existing
+        for item in self.tree_sessions.get_children():
+            self.tree_sessions.delete(item)
+        self.clear_history_details()
+        
+        sessions = self.history_manager.get_sessions()
+        for session in sessions:
+            # Format timestamp nicely
+            try:
+                dt = datetime.fromisoformat(session["timestamp"])
+                date_str = dt.strftime("%Y-%m-%d %H:%M:%S")
+            except:
+                date_str = session["timestamp"]
+                
+            self.tree_sessions.insert("", tk.END, values=(date_str, session["count"]), iid=session["id"])
+
+    def clear_history_details(self):
+        for item in self.tree_history_details.get_children():
+            self.tree_history_details.delete(item)
+        self.btn_undo.config(state=tk.DISABLED)
+
+    def on_session_select(self, event):
+        """Display details for selected session."""
+        selection = self.tree_sessions.selection()
+        if not selection:
+            return
+            
+        session_id = selection[0]
+        session = self.history_manager.get_session_by_id(session_id)
+        
+        self.clear_history_details()
+        if session:
+            self.btn_undo.config(state=tk.NORMAL)
+            for record in session["files"]:
+                old_name = Path(record["old_path"]).name
+                new_name = Path(record["new_path"]).name
+                self.tree_history_details.insert("", tk.END, values=(old_name, "→", new_name))
+
+    def undo_session(self):
+        """Undo the selected session."""
+        selection = self.tree_sessions.selection()
+        if not selection:
+            return
+            
+        session_id = selection[0]
+        session = self.history_manager.get_session_by_id(session_id)
+        if not session:
+            return
+            
+        if not messagebox.askyesno("Confirm Undo", "Are you sure you want to undo this session?\nThis will rename files back to their original names."):
+            return
+            
+        # Execute undo
+        renamer = FileRenamer([], self.config) # Empty init since we use session data
+        results = renamer.undo_session(session)
+        
+        # Show results
+        success_count = sum(1 for r in results if r.success)
+        error_count = len(results) - success_count
+        
+        msg = f"Undo complete.\nRestored: {success_count}\nFailed: {error_count}"
+        if error_count > 0:
+            msg += "\n\nCheck logs for details or ensure files have not been moved."
+            messagebox.showwarning("Undo Results", msg)
+        else:
+            messagebox.showinfo("Success", msg)
+            
+        # Refresh
+        self.load_history()
+        # Also refresh workspace if needed? No, user can reload.
+        
+    def change_history_location(self):
+        """Change the location of the history file."""
+        current_path = self.settings.get_history_path()
+        
+        # Ask user for new location (Save As dialog effectively, but we are choosing a file)
+        # We can use askopenfilename to find existing, or asksaveasfilename to create new
+        # But maybe just askdirectory? Then we create history.json inside?
+        # User request: "choose the path". Usually implies file or folder. 
+        # Let's let them choose the folder, and we assume 'history.json' inside it, 
+        # OR let them point to a specific .json file. Pointing to a specific file is most flexible.
+        
+        new_file = filedialog.asksaveasfilename(
+            title="Select History File Location",
+            initialdir=current_path.parent,
+            initialfile=current_path.name,
+            filetypes=[("JSON Files", "*.json"), ("All Files", "*.*")],
+            defaultextension=".json"
+        )
+        
+        if new_file:
+            new_path = Path(new_file)
+            
+            # Check if we should copy existing history
+            if messagebox.askyesno("Migrate History", "Do you want to copy your current history data to the new location?"):
+                try:
+                    # Load current data
+                    current_data = self.history_manager.history_data
+                    # Save to new location (HistoryManager will handle this if we init it/save it)
+                     # Creating a temp manager to save
+                    temp_manager = HistoryManager(new_path)
+                    temp_manager.history_data = current_data
+                    temp_manager._save_history()
+                except Exception as e:
+                    messagebox.showerror("Error", f"Failed to migrate data: {e}")
+                    return
+
+            # Update settings
+            self.settings.set_history_path(new_path)
+            
+            # Re-init manager
+            self.history_manager = HistoryManager(new_path)
+            
+            # Refresh UI
+            self.load_history()
+            messagebox.showinfo("Success", f"History location updated to:\n{new_path}")
+        
     def create_file_selection_section(self, parent, row):
         """Create file selection controls."""
         frame = ttk.LabelFrame(parent, text="File Selection", padding="5")
@@ -198,8 +419,8 @@ class RenamerGUI:
         frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
         
         # Rename button (large, prominent)
-        self.btn_rename = ttk.Button(frame, text="Rename Files", command=self.rename_files)
-        self.btn_rename.grid(row=0, column=0, padx=5, ipadx=20, ipady=5)
+        self.btn_rename = ttk.Button(frame, text="Rename Files", command=self.rename_files, style="Accent.TButton")
+        self.btn_rename.grid(row=0, column=0, padx=5, ipadx=10, ipady=5)
         
         # Progress bar
         self.progress = ttk.Progressbar(frame, mode='determinate', length=300)
@@ -212,7 +433,7 @@ class RenamerGUI:
     def create_status_bar(self, parent, row):
         """Create status bar."""
         self.status_var = tk.StringVar(value="Ready")
-        status_bar = ttk.Label(parent, textvariable=self.status_var, relief=tk.SUNKEN, anchor=tk.W)
+        status_bar = ttk.Label(parent, textvariable=self.status_var, relief=tk.FLAT, anchor=tk.W, style="Status.TLabel", padding=5)
         status_bar.grid(row=row, column=0, sticky=(tk.W, tk.E))
     
     # ===== Event Handlers =====
@@ -230,7 +451,24 @@ class RenamerGUI:
         )
         
         if files:
-            self.selected_files = [Path(f) for f in files]
+            new_files = [Path(f) for f in files]
+            # Add to registry (only for new additions)
+            for f in new_files:
+                if f not in self.original_names:
+                    # 1. Try to find in history (Deep Lookup)
+                    historical_name = self.history_manager.trace_original_name(f)
+                    if historical_name:
+                         self.original_names[f] = historical_name
+                    else:
+                         # 2. Default to current name
+                         self.original_names[f] = f.name
+            
+            # Combine unique files
+            current_paths = set(self.selected_files)
+            for f in new_files:
+                if f not in current_paths:
+                    self.selected_files.append(f)
+            
             self.update_file_list()
             self.update_preview()
             self.status_var.set(f"Loaded {len(self.selected_files)} file(s)")
@@ -238,6 +476,7 @@ class RenamerGUI:
     def clear_files(self):
         """Clear the file list."""
         self.selected_files = []
+        self.original_names = {}
         self.update_file_list()
         self.update_preview()
         self.status_var.set("Ready")
@@ -289,7 +528,9 @@ class RenamerGUI:
         
         # Add files
         for filepath in self.selected_files:
-            self.tree_files.insert("", tk.END, values=(filepath.name, str(filepath.parent)))
+            # Show original name if available, otherwise current name
+            display_name = self.original_names.get(filepath, filepath.name)
+            self.tree_files.insert("", tk.END, values=(display_name, str(filepath.parent)))
         
         # Update count label
         count = len(self.selected_files)
@@ -326,8 +567,12 @@ class RenamerGUI:
             
             # Display preview
             for old_path, new_path, is_valid, error_msg in preview:
-                old_name = old_path.name
-                new_name = new_path.name
+                # Use original name for display if available
+                # But show current name in tooltip or as secondary? 
+                # For now, let's show original name in "Current Name" column to satisfy user request
+                display_old_name = self.original_names.get(old_path, old_path.name)
+                # But keep new_name as is (the target)
+                new_display = new_path.name
                 
                 if is_valid:
                     status = "✓ Ready"
@@ -340,7 +585,7 @@ class RenamerGUI:
                     tag = "error"
                 
                 self.tree_preview.insert("", tk.END, 
-                                       values=(old_name, "→", new_name, status),
+                                       values=(display_old_name, "→", new_display, status),
                                        tags=(tag,))
             
             # Check if any files can be renamed
@@ -427,9 +672,33 @@ class RenamerGUI:
         else:
             messagebox.showerror("Rename Failed", message)
         
-        # Refresh file list (clear renamed files)
+        # Refresh file list (update paths but keep selection)
         if stats['successful'] > 0:
-            self.selected_files = [r.old_path for r in results if not r.success]
+            # Update paths in selected_files and original_names map
+            new_selection = []
+            
+            # Create a map of successful renames: old_path -> new_path
+            rename_map = {}
+            for res in results:
+                if res.success:
+                    rename_map[res.old_path] = res.new_path
+            
+            # Rebuild selection list with new paths
+            for f in self.selected_files:
+                if f in rename_map:
+                    new_path = rename_map[f]
+                    # Transfer original name to new path key
+                    if f in self.original_names:
+                        self.original_names[new_path] = self.original_names[f]
+                        # Optional: Remove old key? 
+                        # del self.original_names[f] 
+                        # (Safe to keep or delete, but deletion saves memory)
+                        del self.original_names[f]
+                    new_selection.append(new_path)
+                else:
+                    new_selection.append(f)
+            
+            self.selected_files = new_selection
             self.update_file_list()
             self.update_preview()
         
