@@ -30,6 +30,10 @@ A professional batch file renaming utility designed for video editors, photograp
 - 🎯 **Extension Preservation**: Automatically preserves file extensions (.mp4, .mov, .jpg, etc.)
 - 🔒 **Error Handling**: Detects locked files and permission errors with detailed reporting
 - 🎨 **Color-Coded Preview**: Visual indicators for safe renames (green), conflicts (yellow), and errors (red)
+- 🎭 **Modern UI Theme**: Apple-inspired clean design with professional aesthetics (v2.0+)
+- 📜 **Deep History Tracking**: Remembers original filenames across sessions (v2.0+)
+- ↩️ **Undo System**: Revert any past rename operation with one click (v2.0+)
+- 💾 **Customizable Storage**: Choose where to save your history (cloud, external drives) (v2.0+)
 
 ## Installation
 
@@ -274,6 +278,15 @@ If you encounter any issues or have questions:
 3. Open an issue on GitHub
 
 ## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
+
+### Latest: v2.0.0 (January 2026)
+- ✨ Modern Apple-inspired UI theme
+- 📜 Deep history tracking system
+- ↩️ Undo/recovery capabilities
+- 💾 Customizable history storage location
+- 🎨 Enhanced visual design and typography
 
 ### v1.0.0 (January 2026)
 - Initial release

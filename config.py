@@ -6,7 +6,7 @@ from pathlib import Path
 
 # Application Metadata
 APP_NAME = "Batch File Renamer"
-APP_VERSION = "1.0.0"
+APP_VERSION = "2.0.0"
 AUTHOR = "FileNameOrganizer"
 
 # Default Settings
