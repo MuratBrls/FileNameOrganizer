@@ -26,19 +26,20 @@ class RenameResult:
 class FileRenamer:
     """Main file renaming engine."""
     
-    def __init__(self, files: List[Path], config: RenameConfig):
+    def __init__(self, files: List[Path], config: RenameConfig, history_manager: Optional['HistoryManager'] = None):
         """
         Initialize the renamer.
         
         Args:
             files: List of file paths to rename
             config: RenameConfig object with settings
+            history_manager: Optional shared HistoryManager instance
         """
         self.files = [Path(f) for f in files]
         self.config = config
         self.sorted_files = []
         self.rename_plan = []
-        self.history_manager = HistoryManager()
+        self.history_manager = history_manager if history_manager else HistoryManager()
         
     def extract_extension(self, filepath: Path) -> str:
         """

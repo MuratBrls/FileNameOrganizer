@@ -214,7 +214,7 @@ class RenamerGUI:
             return
             
         # Execute undo
-        renamer = FileRenamer([], self.config) # Empty init since we use session data
+        renamer = FileRenamer([], self.config, self.history_manager) # Empty init since we use session data
         results = renamer.undo_session(session)
         
         # Show results
@@ -552,7 +552,7 @@ class RenamerGUI:
         
         # Generate preview
         try:
-            renamer = FileRenamer(self.selected_files, self.config)
+            renamer = FileRenamer(self.selected_files, self.config, self.history_manager)
             preview = renamer.preview_rename()
             self.preview_data = preview
             
@@ -642,7 +642,7 @@ class RenamerGUI:
     
     def show_results(self, results):
         """Display rename operation results."""
-        stats = FileRenamer([], RenameConfig()).verify_rename(results)
+        stats = FileRenamer([], RenameConfig(), self.history_manager).verify_rename(results)
         
         # Build message
         message = f"Rename Complete!\n\n"
