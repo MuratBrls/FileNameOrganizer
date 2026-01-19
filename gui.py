@@ -16,8 +16,6 @@ from config import (
 )
 from validators import validate_base_name, validate_start_number, validate_separator
 from renamer_engine import FileRenamer
-from renamer_engine import FileRenamer
-from renamer_engine import FileRenamer
 from history_manager import HistoryManager
 from theme_manager import ModernTheme
 from app_settings import AppSettings
@@ -32,11 +30,6 @@ class RenamerGUI:
         self.root.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
         self.root.minsize(WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT)
         
-        # State
-        self.selected_files = []
-        self.original_names = {}  # Map current path -> original import name
-        self.config = RenameConfig()
-        self.preview_data = []
         # State
         self.selected_files = []
         self.original_names = {}  # Map current path -> original import name
@@ -154,8 +147,6 @@ class RenamerGUI:
         action_frame = ttk.Frame(parent, padding="5")
         action_frame.grid(row=2, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=10)
         
-        self.btn_undo = ttk.Button(action_frame, text="Undo Selected Session", command=self.undo_session, state=tk.DISABLED, style="Accent.TButton")
-        self.btn_undo.pack(side=tk.RIGHT)
         
         self.btn_undo = ttk.Button(action_frame, text="Undo Selected Session", command=self.undo_session, state=tk.DISABLED, style="Accent.TButton")
         self.btn_undo.pack(side=tk.RIGHT, padx=5)
